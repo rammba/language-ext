@@ -1,15 +1,16 @@
 ﻿using LanguageExt.ClassInstances;
 using System;
+using static LanguageExt.Prelude;
 
 namespace LanguageExt.DataTypes.Serialisation
 {
     public static class EitherData
     {
         public static EitherData<L, R> Right<L, R>(R rightValue) => 
-            new EitherData<L, R>(EitherStatus.IsRight, rightValue, default(L));
+            new(EitherStatus.IsRight, rightValue, default);
 
         public static EitherData<L, R> Left<L, R>(L leftValue) =>
-            new EitherData<L, R>(EitherStatus.IsLeft, default(R), leftValue);
+            new(EitherStatus.IsLeft, default, leftValue);
 
         public static EitherData<L, R> Bottom<L, R>() =>
             EitherData<L, R>.Bottom;
@@ -17,7 +18,7 @@ namespace LanguageExt.DataTypes.Serialisation
 
     public class EitherData<L, R> : IEquatable<EitherData<L, R>>
     {
-        public static EitherData<L, R> Bottom = new EitherData<L, R>(EitherStatus.IsBottom, default(R), default(L));
+        public static EitherData<L, R> Bottom = new(EitherStatus.IsBottom, default, default);
 
         public readonly EitherStatus State;
         public readonly R Right;
@@ -54,10 +55,10 @@ namespace LanguageExt.DataTypes.Serialisation
             State == EitherStatus.IsBottom
                 ? "Bottom"
                 : State == EitherStatus.IsRight
-                    ? Prelude.isnull(Right)
+                    ? isnull(Right)
                         ? "Right(null)"
                         : $"Right({Right})"
-                    : Prelude.isnull(Left)
+                    : isnull(Left)
                         ? "Left(null)"
                         : $"Left({Left})";
     }

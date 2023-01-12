@@ -1,5 +1,4 @@
-﻿using LanguageExt;
-using static LanguageExt.Prelude;
+﻿using static LanguageExt.Prelude;
 using System;
 using System.Diagnostics.Contracts;
 using LanguageExt.ClassInstances;
@@ -41,7 +40,7 @@ namespace LanguageExt
         }
 
         public EitherLeft<L> Select(Func<L, L> f) =>
-            new EitherLeft<L>(f(Value));
+            new(f(Value));
 
         public EitherLeft<L> SelectMany(Func<L, EitherLeft<L>> f) =>
             f(Value);
@@ -50,7 +49,7 @@ namespace LanguageExt
             Left<L, R>(Value);
 
         public EitherLeft<C> SelectMany<C>(Func<L, EitherLeft<L>> bind, Func<L, Unit, C> project) =>
-            new EitherLeft<C>(project(Value, unit));
+            new(project(Value, unit));
 
         public Either<L, C> SelectMany<B, C>(Func<L, EitherLeft<B>> bind, Func<L, B, C> project) =>
             Left<L, C>(Value);

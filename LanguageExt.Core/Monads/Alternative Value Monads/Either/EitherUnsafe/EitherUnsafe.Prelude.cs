@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using LanguageExt;
-using static LanguageExt.Prelude;
-using static LanguageExt.TypeClass;
 using static LanguageExt.ChoiceUnsafe;
 using System.ComponentModel;
 using System.Diagnostics.Contracts;
@@ -220,7 +217,7 @@ namespace LanguageExt
         /// <returns>A new EitherRight instance</returns>
         [Pure]
         public static EitherRight<R> RightUnsafe<R>(R value) =>
-            new EitherRight<R>(value);
+            new(value);
 
         /// <summary>
         /// Either constructor

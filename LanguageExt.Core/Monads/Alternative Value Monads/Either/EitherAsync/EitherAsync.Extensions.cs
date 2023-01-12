@@ -295,7 +295,7 @@ public static class EitherAsyncExtensions
     [Pure]
     public static Aff<R> ToAff<R>(EitherAsync<Error, R> ma)
     {
-        return AffMaybe<R>(Go);
+        return AffMaybe(Go);
         ValueTask<Fin<R>> Go() =>
             ma.Match(
                 Right: Fin<R>.Succ,
@@ -310,7 +310,7 @@ public static class EitherAsyncExtensions
     [Pure]
     public static Aff<R> ToAff<R>(EitherAsync<Exception, R> ma)
     {
-        return AffMaybe<R>(Go);
+        return AffMaybe(Go);
         ValueTask<Fin<R>> Go() =>
             ma.Match(
                 Right: Fin<R>.Succ,
@@ -325,7 +325,7 @@ public static class EitherAsyncExtensions
     [Pure]
     public static Aff<R> ToAff<R>(EitherAsync<string, R> ma)
     {
-        return AffMaybe<R>(Go);
+        return AffMaybe(Go);
         ValueTask<Fin<R>> Go() =>
             ma.Match(
                 Right: Fin<R>.Succ,

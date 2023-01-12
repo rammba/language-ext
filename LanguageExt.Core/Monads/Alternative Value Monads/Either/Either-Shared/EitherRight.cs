@@ -1,5 +1,4 @@
-﻿using LanguageExt;
-using static LanguageExt.Prelude;
+﻿using static LanguageExt.Prelude;
 using System;
 using System.Diagnostics.Contracts;
 using LanguageExt.ClassInstances;
@@ -48,7 +47,7 @@ namespace LanguageExt
 
         [Pure]
         public EitherRight<B> Select<B>(Func<R, B> f) =>
-            new EitherRight<B>(f(Value));
+            new(f(Value));
 
         [Pure]
         public EitherRight<B> SelectMany<B>(Func<R, EitherRight<B>> f) =>
@@ -60,7 +59,7 @@ namespace LanguageExt
 
         [Pure]
         public EitherRight<C> SelectMany<B, C>(Func<R, EitherRight<B>> bind, Func<R, B, C> project) =>
-            new EitherRight<C>(project(Value, bind(Value).Value));
+            new(project(Value, bind(Value).Value));
 
         [Pure]
         public Either<L, C> SelectMany<L, C>(Func<R, EitherLeft<L>> bind, Func<R, Unit, C> project) =>
@@ -209,7 +208,7 @@ namespace LanguageExt
 
         [Pure]
         public EitherRight<Ret> Map<Ret>(Func<R, Ret> mapper) =>
-            new EitherRight<Ret>(mapper(Value));
+            new(mapper(Value));
 
         [Pure]
         public EitherRight<Ret> Bind<Ret>(Func<R, EitherRight<Ret>> f) =>

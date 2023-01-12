@@ -47,7 +47,7 @@ namespace LanguageExt
         IEquatable<R>, 
         ISerializable
     {
-        public readonly static Either<L, R> Bottom = new Either<L, R>();
+        public readonly static Either<L, R> Bottom = new();
 
         internal readonly R right;
         internal readonly L left;
@@ -57,9 +57,9 @@ namespace LanguageExt
             if (isnull(right))
                 throw new ValueIsNullException();
 
-            this.State = EitherStatus.IsRight;
+            State = EitherStatus.IsRight;
             this.right = right;
-            this.left = default(L);
+            left = default;
         }
 
         private Either(L left)
@@ -67,8 +67,8 @@ namespace LanguageExt
             if (isnull(left))
                 throw new ValueIsNullException();
 
-            this.State = EitherStatus.IsLeft;
-            this.right = default(R);
+            State = EitherStatus.IsLeft;
+            right = default;
             this.left = left;
         }
 
@@ -76,19 +76,19 @@ namespace LanguageExt
         Either(SerializationInfo info, StreamingContext context)
         {
             State = (EitherStatus)info.GetValue("State", typeof(EitherStatus));
-            switch(State)
+            switch (State)
             {
                 case EitherStatus.IsBottom:
-                    right = default(R);
-                    left = default(L);
+                    right = default;
+                    left = default;
                     break;
                 case EitherStatus.IsRight:
                     right = (R)info.GetValue("Right", typeof(R));
-                    left = default(L);
+                    left = default;
                     break;
                 case EitherStatus.IsLeft:
                     left = (L)info.GetValue("Left", typeof(L));
-                    right = default(R);
+                    right = default;
                     break;
 
                 default:
@@ -131,7 +131,7 @@ namespace LanguageExt
             Right<L, R>(right.Value);
 
         /// <summary>
-        /// Implicit conversion operator from EitherRight to Either
+        /// Implicit conversion operator from EitherLeft to Either
         /// </summary>
         /// <param name="a">None value</param>
         [Pure]
@@ -147,15 +147,15 @@ namespace LanguageExt
             var first = either.Take(1).ToArray();
             if (first.Length == 0)
             {
-                this.State = EitherStatus.IsBottom;
-                this.right = default(R);
-                this.left = default(L);
+                State = EitherStatus.IsBottom;
+                right = default;
+                left = default;
             }
             else 
             {
-                this.right = first[0].Right;
-                this.left = first[0].Left;
-                this.State = 
+                right = first[0].Right;
+                left = first[0].Left;
+                State = 
                     (right.IsNull() && left.IsNull()) ||
                     (first[0].State == EitherStatus.IsLeft && left.IsNull()) ||
                     (first[0].State == EitherStatus.IsRight && right.IsNull())
@@ -425,7 +425,7 @@ namespace LanguageExt
         /// <returns>Context that must have Left() called upon it.</returns>
         [Pure]
         public EitherUnitContext<L, R> Right(Action<R> right) =>
-            new EitherUnitContext<L, R>(this, right);
+            new(this, right);
 
         /// <summary>
         /// Match Right and return a context.  You must follow this with .Left(...) to complete the match
@@ -434,7 +434,7 @@ namespace LanguageExt
         /// <returns>Context that must have Left() called upon it.</returns>
         [Pure]
         public EitherContext<L, R, Ret> Right<Ret>(Func<R, Ret> right) =>
-            new EitherContext<L, R, Ret>(this, right);
+            new(this, right);
 
         /// <summary>
         /// Return a string representation of the Either
@@ -587,7 +587,7 @@ namespace LanguageExt
         public Eff<R> ToEff(Func<L, Common.Error> Left) =>
             State switch
             {
-                EitherStatus.IsRight => SuccessEff<R>(RightValue),
+                EitherStatus.IsRight => SuccessEff(RightValue),
                 EitherStatus.IsLeft  => FailEff<R>(Left(LeftValue)),
                 _                    => default // bottom
             };
@@ -601,7 +601,7 @@ namespace LanguageExt
         public Aff<R> ToAff(Func<L, Common.Error> Left) =>
             State switch
             {
-                EitherStatus.IsRight => SuccessAff<R>(RightValue),
+                EitherStatus.IsRight => SuccessAff(RightValue),
                 EitherStatus.IsLeft  => FailAff<R>(Left(LeftValue)),
                 _                    => default // bottom
             };
@@ -611,7 +611,7 @@ namespace LanguageExt
         /// </summary>
         [Pure]
         public EitherAsync<L, R> ToAsync() =>
-            new EitherAsync<L, R>(this.Head().AsTask());
+            new(this.Head().AsTask());
 
         /// <summary>
         /// Convert the Either to an EitherUnsafe
@@ -709,11 +709,6 @@ namespace LanguageExt
         public static bool operator >=(Either<L, R> lhs, EitherRight<R> rhs) =>
             compare<OrdDefault<L>, OrdDefault<R>, L, R>(lhs, rhs) >= 0;
 
-
-
-
-
-
         /// <summary>
         /// Comparison operator
         /// </summary>
@@ -793,9 +788,6 @@ namespace LanguageExt
         [Pure]
         public static bool operator >=(EitherRight<R> lhs, Either<L, R> rhs) =>
             compare<OrdDefault<L>, OrdDefault<R>, L, R>(lhs, rhs) >= 0;
-
-
-
 
         /// <summary>
         /// Comparison operator
@@ -1040,11 +1032,11 @@ namespace LanguageExt
 
         [Pure]
         public static Either<L, R> Right(R value) =>
-            new Either<L, R>(value);
+            new(value);
 
         [Pure]
         public static Either<L, R> Left(L value) =>
-            new Either<L, R>(value);
+            new(value);
 
         [Pure]
         internal R RightValue =>
@@ -1392,10 +1384,8 @@ namespace LanguageExt
         /// <param name="left"></param>
         /// <returns>Result of the match</returns>
         [Pure]
-        public Ret Left(Func<L, Ret> left)
-        {
-            return match(either, rightHandler, left);
-        }
+        public Ret Left(Func<L, Ret> left) =>
+            match(either, rightHandler, left);
     }
 
     /// <summary>
@@ -1412,9 +1402,7 @@ namespace LanguageExt
             this.rightHandler = rightHandler;
         }
 
-        public Unit Left(Action<L> leftHandler)
-        {
-            return match(either, rightHandler, leftHandler);
-        }
+        public Unit Left(Action<L> leftHandler) =>
+            match(either, rightHandler, leftHandler);
     }
 }

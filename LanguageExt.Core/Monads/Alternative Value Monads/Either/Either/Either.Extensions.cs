@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using LanguageExt;
 using static LanguageExt.Prelude;
 using static LanguageExt.TypeClass;
 using static LanguageExt.Choice;
-using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using LanguageExt.TypeClasses;
@@ -414,7 +412,7 @@ public static class EitherExtensions
     public static Eff<R> ToEff<R>(this Either<Error, R> ma) =>
         ma.State switch
         {
-            EitherStatus.IsRight => SuccessEff<R>(ma.RightValue),
+            EitherStatus.IsRight => SuccessEff(ma.RightValue),
             EitherStatus.IsLeft  => FailEff<R>(ma.LeftValue),
             _                    => default // bottom
         };
@@ -427,7 +425,7 @@ public static class EitherExtensions
     public static Aff<R> ToAff<R>(this Either<Error, R> ma) =>
         ma.State switch
         {
-            EitherStatus.IsRight => SuccessAff<R>(ma.RightValue),
+            EitherStatus.IsRight => SuccessAff(ma.RightValue),
             EitherStatus.IsLeft  => FailAff<R>(ma.LeftValue),
             _                    => default // bottom
         };
@@ -440,7 +438,7 @@ public static class EitherExtensions
     public static Eff<R> ToEff<R>(this Either<Exception, R> ma) =>
         ma.State switch
         {
-            EitherStatus.IsRight => SuccessEff<R>(ma.RightValue),
+            EitherStatus.IsRight => SuccessEff(ma.RightValue),
             EitherStatus.IsLeft  => FailEff<R>(ma.LeftValue),
             _                    => default // bottom
         };
@@ -453,7 +451,7 @@ public static class EitherExtensions
     public static Aff<R> ToAff<R>(this Either<Exception, R> ma) =>
         ma.State switch
         {
-            EitherStatus.IsRight => SuccessAff<R>(ma.RightValue),
+            EitherStatus.IsRight => SuccessAff(ma.RightValue),
             EitherStatus.IsLeft  => FailAff<R>(ma.LeftValue),
             _                    => default // bottom
         };
@@ -466,7 +464,7 @@ public static class EitherExtensions
     public static Eff<R> ToEff<R>(this Either<string, R> ma) =>
         ma.State switch
         {
-            EitherStatus.IsRight => SuccessEff<R>(ma.RightValue),
+            EitherStatus.IsRight => SuccessEff(ma.RightValue),
             EitherStatus.IsLeft  => FailEff<R>(Error.New(ma.LeftValue)),
             _                    => default // bottom
         };
@@ -479,7 +477,7 @@ public static class EitherExtensions
     public static Aff<R> ToAff<R>(this Either<string, R> ma) =>
         ma.State switch
         {
-            EitherStatus.IsRight => SuccessAff<R>(ma.RightValue),
+            EitherStatus.IsRight => SuccessAff(ma.RightValue),
             EitherStatus.IsLeft  => FailAff<R>(Error.New(ma.LeftValue)),
             _                    => default // bottom
         };

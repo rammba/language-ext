@@ -7,8 +7,6 @@ using static LanguageExt.TypeClass;
 using static LanguageExt.ChoiceUnsafe;
 using System.ComponentModel;
 using System.Diagnostics.Contracts;
-using System.Threading.Tasks;
-using LanguageExt.TypeClasses;
 using LanguageExt.ClassInstances;
 using System.Runtime.Serialization;
 using LanguageExt.DataTypes.Serialisation;
@@ -54,15 +52,15 @@ namespace LanguageExt
 
         private EitherUnsafe(R right)
         {
-            this.State = EitherStatus.IsRight;
+            State = EitherStatus.IsRight;
             this.right = right;
-            this.left = default(L);
+            left = default;
         }
 
         private EitherUnsafe(L left)
         {
-            this.State = EitherStatus.IsLeft;
-            this.right = default(R);
+            State = EitherStatus.IsLeft;
+            right = default;
             this.left = left;
         }
 
@@ -73,16 +71,16 @@ namespace LanguageExt
             switch (State)
             {
                 case EitherStatus.IsBottom:
-                    right = default(R);
-                    left = default(L);
+                    right = default;
+                    left = default;
                     break;
                 case EitherStatus.IsRight:
                     right = (R)info.GetValue("Right", typeof(R));
-                    left = default(L);
+                    left = default;
                     break;
                 case EitherStatus.IsLeft:
                     left = (L)info.GetValue("Left", typeof(L));
-                    right = default(R);
+                    right = default;
                     break;
 
                 default:
@@ -107,15 +105,15 @@ namespace LanguageExt
             var first = either.Take(1).ToArray();
             if (first.Length == 0)
             {
-                this.State = EitherStatus.IsBottom;
-                this.right = default(R);
-                this.left = default(L);
+                State = EitherStatus.IsBottom;
+                right = default;
+                left = default;
             }
             else
             {
-                this.right = first[0].Right;
-                this.left = first[0].Left;
-                this.State =first[0].State;
+                right = first[0].Right;
+                left = first[0].Left;
+                State = first[0].State;
             }
         }
 
@@ -343,7 +341,7 @@ namespace LanguageExt
         /// <returns>Context that must have Left() called upon it.</returns>
         [Pure]
         public EitherUnsafeUnitContext<L, R> Right(Action<R> right) =>
-            new EitherUnsafeUnitContext<L, R>(this, right);
+            new(this, right);
 
         /// <summary>
         /// Match Right and return a context.  You must follow this with .Left(...) to complete the match
@@ -352,7 +350,7 @@ namespace LanguageExt
         /// <returns>Context that must have Left() called upon it.</returns>
         [Pure]
         public EitherUnsafeContext<L, R, Ret> Right<Ret>(Func<R, Ret> right) =>
-            new EitherUnsafeContext<L, R, Ret>(this, right);
+            new(this, right);
 
         /// <summary>
         /// Return a string representation of the EitherUnsafe
@@ -502,10 +500,10 @@ namespace LanguageExt
         /// <param name="Left">Map the left value to the Eff Error</param>
         /// <returns>Eff monad</returns>
         [Pure]
-        public Eff<R> ToEff(Func<L, Common.Error> Left) =>
+        public Eff<R> ToEff(Func<L, Error> Left) =>
             State switch
             {
-                EitherStatus.IsRight => SuccessEff<R>(RightValue),
+                EitherStatus.IsRight => SuccessEff(RightValue),
                 EitherStatus.IsLeft  => FailEff<R>(Left(LeftValue)),
                 _                    => default // bottom
             };
@@ -516,10 +514,10 @@ namespace LanguageExt
         /// <param name="Left">Map the left value to the Eff Error</param>
         /// <returns>Aff monad</returns>
         [Pure]
-        public Aff<R> ToAff(Func<L, Common.Error> Left) =>
+        public Aff<R> ToAff(Func<L, Error> Left) =>
             State switch
             {
-                EitherStatus.IsRight => SuccessAff<R>(RightValue),
+                EitherStatus.IsRight => SuccessAff(RightValue),
                 EitherStatus.IsLeft  => FailAff<R>(Left(LeftValue)),
                 _                    => default // bottom
             };
@@ -678,11 +676,11 @@ namespace LanguageExt
 
         [Pure]
         public static EitherUnsafe<L, R> Right(R value) =>
-            new EitherUnsafe<L, R>(value);
+            new(value);
 
         [Pure]
         public static EitherUnsafe<L, R> Left(L value) =>
-            new EitherUnsafe<L, R>(value);
+            new(value);
 
         [Pure]
         internal R RightValue =>
