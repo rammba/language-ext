@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using LanguageExt;
 using System.Threading.Tasks;
 using System.Diagnostics.Contracts;
 using LanguageExt.TypeClasses;
@@ -383,7 +381,7 @@ namespace LanguageExt
             self.HasValue
                 ? pred(self.Value)
                     ? self
-                    : default(T?)
+                    : default
                 : self;
 
         [Pure]
@@ -391,10 +389,10 @@ namespace LanguageExt
             self.HasValue
                 ? Some(self.Value)
                     ? self
-                    : default(T?)
+                    : default
                 : None()
                     ? self
-                    : default(T?);
+                    : default;
 
         [Pure]
         public static R? bind<T, R>(T? self, Func<T, R?> binder)
@@ -402,7 +400,7 @@ namespace LanguageExt
             where R : struct =>
             self.HasValue
                 ? binder(self.Value)
-                : default(R?);
+                : default;
 
         [Pure]
         public static R? bind<T, R>(T? self, Func<T, R?> Some, Func<R?> None)

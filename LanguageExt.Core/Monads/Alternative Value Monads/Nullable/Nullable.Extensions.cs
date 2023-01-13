@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections;
-using System.Linq;
 using System.ComponentModel;
-using LanguageExt;
 using static LanguageExt.Prelude;
 using System.Threading.Tasks;
 using System.Diagnostics.Contracts;
@@ -406,14 +403,14 @@ namespace LanguageExt
             where R : struct =>
             self.HasValue
                 ? Some(self.Value)
-                : default(R?);
+                : default;
 
         [Pure]
         public static T? Filter<T>(this T? self, Func<T, bool> pred) where T : struct =>
             self.HasValue
                 ? pred(self.Value)
                     ? self
-                    : default(T?)
+                    : default
                 : self;
 
         [Pure]
@@ -421,10 +418,10 @@ namespace LanguageExt
             self.HasValue
                 ? Some(self.Value)
                     ? self
-                    : default(T?)
+                    : default
                 : None()
                     ? self
-                    : default(T?);
+                    : default;
 
         [Pure]
         public static R? Bind<T, R>(this T? self, Func<T, R?> binder)
@@ -432,7 +429,7 @@ namespace LanguageExt
             where R : struct =>
             self.HasValue
                 ? binder(self.Value)
-                : default(R?);
+                : default;
 
         [Pure]
         public static R? Bind<T, R>(this T? self, Func<T, R?> Some, Func<R?> None)
@@ -468,9 +465,17 @@ namespace LanguageExt
             where U : struct
             where V : struct
         {
-            if (!self.HasValue) return default(V?);
+            if (!self.HasValue)
+            {
+                return default;
+            }
+
             var resU = bind(self.Value);
-            if (!resU.HasValue) return default(V?);
+            if (!resU.HasValue)
+            {
+                return default;
+            }
+
             return project(self.Value, resU.Value);
         }
     }
