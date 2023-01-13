@@ -3,11 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
 using LanguageExt.ClassInstances;
 using LanguageExt.Common;
-using LanguageExt.DataTypes.Serialisation;
 using static LanguageExt.Prelude;
 
 namespace LanguageExt
@@ -35,7 +33,7 @@ namespace LanguageExt
         internal Fin(in Error error)
         {
             this.error = error;
-            this.value = default;
+            value = default;
             IsSucc     = false;
         }
 
@@ -45,7 +43,7 @@ namespace LanguageExt
         [MethodImpl(Opt.Default)]
         internal Fin(in A value)
         {
-            this.error = default;
+            error = default;
             this.value = value;
             IsSucc     = true;
         }
@@ -58,11 +56,11 @@ namespace LanguageExt
 
         [Pure, MethodImpl(Opt.Default)]
         public static Fin<A> Fail(Error error) => 
-            new Fin<A>(error);
+            new(error);
 
         [Pure, MethodImpl(Opt.Default)]
         public static Fin<A> Fail(string error) => 
-            new Fin<A>(Error.New(error));
+            new(Error.New(error));
 
         [Pure]
         public bool IsFail
@@ -84,8 +82,8 @@ namespace LanguageExt
         [Pure]
         public object Case =>
             IsSucc 
-                ? (object)value
-                : (object)error;
+                ? value
+                : error;
 
         /// <summary>
         /// Equality
@@ -103,11 +101,11 @@ namespace LanguageExt
 
         [Pure, MethodImpl(Opt.Default)]
         public static implicit operator Fin<A>(A value) =>
-            Fin<A>.Succ(value);
+            Succ(value);
         
         [Pure, MethodImpl(Opt.Default)]
         public static implicit operator Fin<A>(Error error) =>
-            Fin<A>.Fail(error);
+            Fail(error);
 
         [Pure, MethodImpl(Opt.Default)]
         public static explicit operator A(Fin<A> ma) =>
@@ -297,8 +295,6 @@ namespace LanguageExt
         public static bool operator !=(Fin<A> lhs, Fin<A> rhs) =>
             !(lhs == rhs);
 
-        
-        
         /// <summary>
         /// Equality operator override
         /// </summary>
@@ -585,10 +581,10 @@ namespace LanguageExt
         }
 
         [Pure, MethodImpl(Opt.Default)]
-        public System.Collections.Generic.List<A> ToList() =>
+        public List<A> ToList() =>
             IsSucc
-                ? new System.Collections.Generic.List<A>() { Value }
-                : new System.Collections.Generic.List<A>();
+                ? new List<A>() { Value }
+                : new List<A>();
 
         [Pure, MethodImpl(Opt.Default)]
         public Lst<A> ToLst() =>
@@ -653,13 +649,13 @@ namespace LanguageExt
         [Pure, MethodImpl(Opt.Default)]
         public Eff<A> ToEff() =>
             IsSucc
-                ? SuccessEff<A>(Value)
+                ? SuccessEff(Value)
                 : FailEff<A>(Error);
 
         [Pure, MethodImpl(Opt.Default)]
         public Aff<A> ToAff() =>
             IsSucc
-                ? SuccessAff<A>(Value)
+                ? SuccessAff(Value)
                 : FailAff<A>(Error);
 
         public A ThrowIfFail()

@@ -3,13 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using LanguageExt;
 using static LanguageExt.Prelude;
-using static LanguageExt.TypeClass;
-using static LanguageExt.Choice;
-using System.ComponentModel;
 using System.Diagnostics.Contracts;
-using System.Threading.Tasks;
 using LanguageExt.TypeClasses;
-using LanguageExt.ClassInstances;
 using LanguageExt.Common;
 
 /// <summary>
