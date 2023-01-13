@@ -5,13 +5,13 @@ using System.Runtime.CompilerServices;
 namespace LanguageExt
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public struct OptionAsyncAwaiter<A> : INotifyCompletion
+    public readonly struct OptionAsyncAwaiter<A> : INotifyCompletion
     {
         readonly OptionAsync<A> ma;
         readonly TaskAwaiter<(bool IsSome, A Value)> awaiter;
 
         internal OptionAsyncAwaiter(OptionAsync<A> ma) =>
-            (this.ma, this.awaiter) = (ma, ma.Data.GetAwaiter());
+            (this.ma, awaiter) = (ma, ma.Data.GetAwaiter());
 
         public bool IsCompleted =>
             awaiter.IsCompleted;

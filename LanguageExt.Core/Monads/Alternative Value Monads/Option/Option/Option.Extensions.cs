@@ -49,7 +49,7 @@ public static class OptionExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Seq<A> Somes<A>(this Seq<Option<A>> self)
     {
-        IEnumerable<A> ToSequence(Seq<Option<A>> items)
+        static IEnumerable<A> ToSequence(Seq<Option<A>> items)
         {
             foreach (var item in items)
             {

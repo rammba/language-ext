@@ -1,11 +1,6 @@
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.ExceptionServices;
-using System.Security;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace LanguageExt
 {
@@ -15,14 +10,14 @@ namespace LanguageExt
         IAsyncStateMachine stateMachine;
         
         public static OptionAsyncMethodBuilder<A> Create() =>
-            new OptionAsyncMethodBuilder<A>();
+            new();
 
         public void Start<TStateMachine>(ref TStateMachine machine)
             where TStateMachine : IAsyncStateMachine =>
             machine.MoveNext();
 
         public void SetStateMachine(IAsyncStateMachine machine) =>
-            this.stateMachine = machine;
+            stateMachine = machine;
 
         public void SetException(Exception _) =>
             Task = OptionAsync<A>.None;

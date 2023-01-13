@@ -41,7 +41,7 @@ namespace LanguageExt
         /// <summary>
         /// None
         /// </summary>
-        public static readonly OptionAsync<A> None = new OptionAsync<A>((false, default(A)).AsTask());
+        public static readonly OptionAsync<A> None = new((false, default(A)).AsTask());
 
         /// <summary>
         /// Construct an OptionAsync of A in a Some state
@@ -61,7 +61,7 @@ namespace LanguageExt
         /// <returns>OptionAsync of A</returns>
         [Pure]
         public static OptionAsync<A> SomeAsync(Task<A> value) =>
-            new OptionAsync<A>(value.Map(v => isnull(v)
+            new(value.Map(v => isnull(v)
                 ? throw new ValueIsNullException()
                 : (true, v)));
 
@@ -72,7 +72,7 @@ namespace LanguageExt
         /// <returns>OptionAsync of A</returns>
         [Pure]
         public static OptionAsync<A> Optional(A value) =>
-             new OptionAsync<A>((notnull(value), value).AsTask());
+             new((notnull(value), value).AsTask());
 
         /// <summary>
         /// Construct an OptionAsync of A in a Some state
@@ -81,7 +81,7 @@ namespace LanguageExt
         /// <returns>OptionAsync of A</returns>
         [Pure]
         public static OptionAsync<A> OptionalAsync(Task<A> value) =>
-            new OptionAsync<A>(value.Map(v => isnull(v)
+            new(value.Map(v => isnull(v)
                 ? (false, default(A))
                 : (true, v)));
 
@@ -104,7 +104,7 @@ namespace LanguageExt
         public OptionAsync(IEnumerable<A> option)
         {
             var first = option.Take(1).ToArray();
-            this.data = first.Length == 0
+            data = first.Length == 0
                 ? (false, default(A)).AsTask()
                 : (true, first[0]).AsTask();
         }
@@ -127,7 +127,7 @@ namespace LanguageExt
         {
             var (isSome, value) = await data.ConfigureAwait(false);
             return isSome
-                ? (object)value
+                ? value
                 : null;
         }
 
@@ -321,7 +321,7 @@ namespace LanguageExt
         /// Custom awaiter so OptionAsync can be used with async/await 
         /// </summary>
         public OptionAsyncAwaiter<A> GetAwaiter() =>
-            new OptionAsyncAwaiter<A>(this);
+            new(this);
         
         /// <summary>
         /// Impure iteration of the bound value in the structure
@@ -589,7 +589,7 @@ namespace LanguageExt
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SomeAsyncUnitContext<MOptionAsync<A>, OptionAsync<A>, A> Some(Action<A> f) =>
-            new SomeAsyncUnitContext<MOptionAsync<A>, OptionAsync<A>, A>(this, f);
+            new(this, f);
 
         /// <summary>
         /// Fluent pattern matching.  Provide a Some handler and then follow
@@ -603,7 +603,7 @@ namespace LanguageExt
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public SomeAsyncContext<MOptionAsync<A>, OptionAsync<A>, A, B> Some<B>(Func<A, B> f) =>
-            new SomeAsyncContext<MOptionAsync<A>, OptionAsync<A>, A, B>(this, f);
+            new(this, f);
 
         /// <summary>
         /// Match the two states of the Option and return a non-null R.

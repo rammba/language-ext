@@ -55,7 +55,7 @@ namespace LanguageExt
         /// <returns>OptionUnsafe of A</returns>
         [Pure]
         public static OptionUnsafe<A> Some(A value) =>
-            new OptionUnsafe<A>(value, true);
+            new(value, true);
 
         /// <summary>
         /// Constructor
@@ -112,7 +112,7 @@ namespace LanguageExt
         [Pure]
         public object Case =>
             IsSome
-                ? (object)Value
+                ? Value
                 : null;
 
         [Pure]
@@ -547,7 +547,7 @@ namespace LanguageExt
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Eff<A> ToEff(Error Fail) =>
             isSome
-                ? SuccessEff<A>(Value)
+                ? SuccessEff(Value)
                 : FailEff<A>(Fail);
         
         /// <summary>
@@ -568,7 +568,7 @@ namespace LanguageExt
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Aff<A> ToAff(Error Fail) =>
             isSome
-                ? SuccessAff<A>(Value)
+                ? SuccessAff(Value)
                 : FailAff<A>(Fail);
         
         [Pure]
@@ -612,7 +612,7 @@ namespace LanguageExt
         /// <param name="f">The Some(x) match operation</param>
         [Pure]
         public SomeUnsafeUnitContext<MOptionUnsafe<A>, OptionUnsafe<A>, A> Some(Action<A> f) =>
-            new SomeUnsafeUnitContext<MOptionUnsafe<A>, OptionUnsafe<A>, A>(this, f);
+            new(this, f);
 
         /// <summary>
         /// Fluent pattern matching.  Provide a Some handler and then follow
@@ -625,7 +625,7 @@ namespace LanguageExt
         /// <returns>The result of the match operation</returns>
         [Pure]
         public SomeUnsafeContext<MOptionUnsafe<A>, OptionUnsafe<A>, A, B> Some<B>(Func<A, B> f) =>
-            new SomeUnsafeContext<MOptionUnsafe<A>, OptionUnsafe<A>, A, B>(this, f);
+            new(this, f);
 
         /// <summary>
         /// Match the two states of the OptionUnsafe and return a B, which can be null.
@@ -936,9 +936,7 @@ namespace LanguageExt
         /// supplied.</returns>
         [Pure]
         public bool Exists(Func<A, bool> pred) =>
-            isSome
-                ? pred(Value)
-                : false;
+            isSome && pred(Value);
 
         /// <summary>
         /// Apply a predicate to the bound value.  If the OptionUnsafe is in a None state

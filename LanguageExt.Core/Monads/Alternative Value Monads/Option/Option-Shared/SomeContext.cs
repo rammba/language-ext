@@ -1,7 +1,5 @@
 ﻿using LanguageExt.TypeClasses;
 using System;
-using System.Diagnostics.Contracts;
-using static LanguageExt.Prelude;
 
 namespace LanguageExt
 {

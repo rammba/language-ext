@@ -7,7 +7,6 @@ using static LanguageExt.TypeClass;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.ComponentModel;
 using LanguageExt.ClassInstances;
 
 /// <summary>
@@ -214,7 +213,7 @@ public static partial class OptionAsyncExtensions
     [Pure]
     public static async Task<A?> ToNullable<A>(this OptionAsync<A> ma) where A : struct =>
         (await ma.IsNone.ConfigureAwait(false))
-            ? (A?)null
+            ? null
             : await ma.Value.ConfigureAwait(false);
 
     /// <summary>

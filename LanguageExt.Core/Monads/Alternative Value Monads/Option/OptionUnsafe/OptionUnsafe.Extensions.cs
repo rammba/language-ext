@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using LanguageExt;
 using LanguageExt.TypeClasses;
 using static LanguageExt.Prelude;
@@ -7,7 +6,6 @@ using static LanguageExt.TypeClass;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.ComponentModel;
 using LanguageExt.ClassInstances;
 
 /// <summary>
@@ -45,7 +43,7 @@ public static class OptionUnsafeExtensions
     [Pure]
     public static Seq<A> Somes<A>(this Seq<OptionUnsafe<A>> self)
     {
-        IEnumerable<A> ToSequence(Seq<OptionUnsafe<A>> items)
+        static IEnumerable<A> ToSequence(Seq<OptionUnsafe<A>> items)
         {
             foreach (var item in items)
             {
@@ -224,7 +222,7 @@ public static class OptionUnsafeExtensions
     [Pure]
     public static A? ToNullable<A>(this OptionUnsafe<A> ma) where A : struct =>
         ma.IsNone
-            ? (A?)null
+            ? null
             : ma.Value;
 
     /// <summary>
@@ -536,7 +534,5 @@ public static class OptionUnsafeExtensions
     /// is the result of running applying the bound value to the Some predicate 
     /// supplied.</returns>
     public static async Task<bool> ExistsAsync<A>(this OptionUnsafe<Task<A>> self, Func<A, bool> pred) =>
-        self.IsSome
-            ? pred(await self.Value.ConfigureAwait(false))
-            : false;
+        self.IsSome && pred(await self.Value.ConfigureAwait(false));
 }
