@@ -1,7 +1,5 @@
 ﻿using System;
 using LanguageExt;
-using static LanguageExt.Prelude;
-using static LanguageExt.TypeClass;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using LanguageExt.TypeClasses;

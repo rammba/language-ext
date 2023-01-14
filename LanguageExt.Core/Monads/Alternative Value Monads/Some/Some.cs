@@ -3,9 +3,7 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics.Contracts;
-using System.Runtime.Serialization;
 using static LanguageExt.Prelude;
 
 namespace LanguageExt
@@ -25,10 +23,8 @@ namespace LanguageExt
             /// <typeparam name="T">Value type</typeparam>
             /// <param name="value">Value</param>
             /// <returns>Value wrapped in a Some T</returns>
-            public static Some<T> ToSome<T>(this T value)
-            {
-                return new Some<T>(value);
-            }
+            public static Some<T> ToSome<T>(this T value) =>
+                new(value);
         }
     }
 
@@ -58,9 +54,9 @@ namespace LanguageExt
         {
             var first = someValue.Take(1).ToArray();
             initialised = first.Length == 1;
-            this.value = initialised
+            value = initialised
                 ? first[0]
-                : default(A);
+                : default;
         }
 
         [Pure]
@@ -99,7 +95,7 @@ namespace LanguageExt
 
         [Pure]
         public static implicit operator Some<A>(A value) => 
-            new Some<A>(value);
+            new(value);
 
         [Pure]
         public static implicit operator A(Some<A> value) => 

@@ -11,7 +11,7 @@ namespace LanguageExt
     /// </summary>
     /// <typeparam name="A">Bound optional value type</typeparam>
     public class SomeUnitContext<OPT, OA, A> 
-        where OPT  : struct, Optional<OA, A>
+        where OPT : struct, Optional<OA, A>
     {
         readonly OA option;
         readonly Action<A> someHandler;

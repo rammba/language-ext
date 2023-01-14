@@ -6,7 +6,6 @@ using static LanguageExt.TypeClass;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using LanguageExt.TypeClasses;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using LanguageExt.ClassInstances;
 using LanguageExt.Common;
@@ -24,8 +23,8 @@ public static class TryAsyncExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Aff<A> ToAff<A>(this TryAsync<A> ma) =>
-        Prelude.AffMaybe(() =>
-             ma.Match(Succ: x => Fin<A>.Succ(x), 
+        AffMaybe(() =>
+             ma.Match(Succ: Fin<A>.Succ, 
                       Fail: e => Fin<A>.Fail(e))
                .ToValue());
     
@@ -45,7 +44,7 @@ public static class TryAsyncExtensions
         var res = await ma.Try().ConfigureAwait(false);
         return res.IsSuccess
             ? res.Value
-            : (object)Error.New(res.Exception);
+            : Error.New(res.Exception);
     }
 
     /// <summary>
@@ -53,7 +52,7 @@ public static class TryAsyncExtensions
     /// </summary>
     public static TryAsync<A> Memo<A>(this TryAsync<A> ma)
     {
-        bool run = false;
+        var run = false;
         var result = Result<A>.Bottom;
         return new TryAsync<A>(async () =>
         {
@@ -121,8 +120,9 @@ public static class TryAsyncExtensions
     /// </summary>
     public static TaskAwaiter<Try<A>> GetAwaiter<A>(this TryAsync<A> ma) =>
         ma.Match(
-            Succ: x => Prelude.Try<A>(x),
-            Fail: e => Prelude.Try<A>(e)).GetAwaiter();
+            Succ: Prelude.Try,
+            Fail: Prelude.Try<A>)
+        .GetAwaiter();
 
     /// <summary>
     /// Forces evaluation of the lazy TryAsync
@@ -312,7 +312,7 @@ public static class TryAsyncExtensions
     /// <returns>Fluent exception matcher</returns>
     [Pure]
     public static ExceptionMatchAsync<A> IfFail<A>(this TryAsync<A> self) =>
-        new ExceptionMatchAsync<A>(self.Try());
+        new(self.Try());
 
     /// <summary>
     /// Pattern matches the two possible states of the Try computation
@@ -452,7 +452,7 @@ public static class TryAsyncExtensions
     [Pure]
     public static Task<Validation<FAIL, A>> ToValidation<A, FAIL>(this TryAsync<A> self, Func<Exception, FAIL> Fail) =>
         self.Match(
-            Succ: v => Success<FAIL, A>(v),
+            Succ: Success<FAIL, A>,
             Fail: e => Fail<FAIL, A>(Fail(e)));
 
     [Pure]
@@ -464,7 +464,7 @@ public static class TryAsyncExtensions
     [Pure]
     public static Task<OptionUnsafe<A>> ToOptionUnsafe<A>(this TryAsync<A> self) =>
         self.Match(
-              Succ: v => OptionUnsafe<A>.Some(v),
+              Succ: OptionUnsafe<A>.Some,
               Fail: _ => OptionUnsafe<A>.None);
 
     [Pure]
@@ -474,25 +474,25 @@ public static class TryAsyncExtensions
     [Pure]
     public static Task<EitherUnsafe<Error, A>> ToEitherUnsafe<A>(this TryAsync<A> self) =>
         self.Match(
-              Succ: v => EitherUnsafe<Error, A>.Right(v),
+              Succ: EitherUnsafe<Error, A>.Right,
               Fail: x => EitherUnsafe<Error, A>.Left(Error.New(x)));
 
     [Pure]
     public static Task<EitherUnsafe<L, A>> ToEitherUnsafe<A, L>(this TryAsync<A> self, Func<Error, L> Fail) =>
         self.Match(
-              Succ: v => EitherUnsafe<L, A>.Right(v),
+              Succ: EitherUnsafe<L, A>.Right,
               Fail: x => EitherUnsafe<L, A>.Left(Fail(Error.New(x))));
 
     [Pure]
     public static EitherAsync<Error, A> ToEither<A>(this TryAsync<A> self) => new EitherAsync<Error, A>(
         self.Match(
-              Succ: v => EitherData.Right<Error, A>(v),
+              Succ: EitherData.Right<Error, A>,
               Fail: x => EitherData.Left<Error, A>(Error.New(x))));
 
     [Pure]
     public static EitherAsync<L, A> ToEither<A, L>(this TryAsync<A> self, Func<Error, L> Fail) => new EitherAsync<L, A>(
         self.Match(
-              Succ: v => EitherData.Right<L, A>(v),
+              Succ: EitherData.Right<L, A>,
               Fail: x => EitherData.Left<L, A>(Fail(Error.New(x)))));
 
     [Pure]
@@ -976,11 +976,11 @@ public static class TryAsyncExtensions
 
     [Pure]
     public static TryAsyncSuccContext<A, R> Succ<A,R>(this TryAsync<A> self, Func<A, R> succHandler) =>
-        new TryAsyncSuccContext<A, R>(self, succHandler);
+        new(self, succHandler);
 
     [Pure]
     public static TryAsyncSuccUnitContext<A> Succ<A>(this TryAsync<A> self, Action<A> succHandler) =>
-        new TryAsyncSuccUnitContext<A>(self, succHandler);
+        new(self, succHandler);
 
     [Pure]
     public static Task<string> AsString<A>(this TryAsync<A> self) =>
@@ -1133,7 +1133,7 @@ public static class TryAsyncExtensions
         Func<A, K> outerKeyMap,
         Func<U, K> innerKeyMap,
         Func<A, U, V> project) =>
-            Memo<V>(async () =>
+            Memo(async () =>
             {
                 var selfTask = self.Try();
                 var innerTask = inner.Try();
@@ -1451,7 +1451,7 @@ public static class TryAsyncExtensions
     {
         var x = await ma.Try().ConfigureAwait(false);
         return x.IsFaulted
-            ? (A?)null
+            ? null
             : x.Value;
     }
 }

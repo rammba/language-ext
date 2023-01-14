@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace LanguageExt
 {
-    public struct TryOptionAsyncSuccContext<A, B>
+    public readonly struct TryOptionAsyncSuccContext<A, B>
     {
         readonly TryOptionAsync<A> value;
         readonly Func<A, B> succHandler;
@@ -19,7 +19,7 @@ namespace LanguageExt
 
         [Pure]
         public TryOptionAsyncSuccContext<A, B> None(Func<B> f) =>
-            new TryOptionAsyncSuccContext<A, B>(value, succHandler, f);
+            new(value, succHandler, f);
 
         [Pure]
         public Task<B> Fail(Func<Exception, B> f) =>
@@ -38,7 +38,7 @@ namespace LanguageExt
             value.MatchAsync(succHandler, noneHandler, _ => failValue);
     }
 
-    public struct TryOptionAsyncSuccContext<A>
+    public readonly struct TryOptionAsyncSuccContext<A>
     {
         readonly TryOptionAsync<A> value;
         readonly Action<A> succHandler;
@@ -52,7 +52,7 @@ namespace LanguageExt
         }
 
         public TryOptionAsyncSuccContext<A> None(Action f) =>
-            new TryOptionAsyncSuccContext<A>(value, succHandler, f);
+            new(value, succHandler, f);
 
         public Task<Unit> Fail(Action<Exception> f) =>
             value.Match(succHandler, noneHandler, f);

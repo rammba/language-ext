@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
-using System.Linq;
 using LanguageExt;
 using LanguageExt.ClassInstances;
 using LanguageExt.TypeClasses;
@@ -30,7 +29,7 @@ public static class TryExtensions
         var res = ma.Try();
         return res.IsSuccess
             ? res.Value
-            : (object)Error.New(res.Exception);
+            : Error.New(res.Exception);
     }
 
     /// <summary>
@@ -193,9 +192,11 @@ public static class TryExtensions
     public static R Match<A, R>(this Try<A> self, Func<A, R> Succ, Func<Exception, R> Fail)
     {
         var res = self.Try();
-        return res.IsBottom ? Fail(res.Exception ?? new BottomException())
-            : res.IsFaulted ? Fail(res.Exception)
-            : Succ(res.Value);
+        return res.IsBottom
+            ? Fail(res.Exception ?? new BottomException())
+            : res.IsFaulted
+                ? Fail(res.Exception)
+                : Succ(res.Value);
     }
 
     /// <summary>
@@ -574,11 +575,11 @@ public static class TryExtensions
 
     [Pure]
     public static TrySuccContext<A, R> Succ<A, R>(this Try<A> self, Func<A, R> succHandler) =>
-        new TrySuccContext<A, R>(self, succHandler);
+        new(self, succHandler);
 
     [Pure]
     public static TrySuccUnitContext<A> Succ<A>(this Try<A> self, Action<A> succHandler) =>
-        new TrySuccUnitContext<A>(self, succHandler);
+        new(self, succHandler);
 
     [Pure]
     public static string AsString<A>(this Try<A> self) =>
@@ -875,7 +876,7 @@ public static class TryExtensions
     {
         var x = ma.Try();
         return x.IsFaulted
-            ? (A?)null
+            ? null
             : x.Value;
     }
 

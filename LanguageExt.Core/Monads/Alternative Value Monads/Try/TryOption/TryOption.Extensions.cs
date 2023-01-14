@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using LanguageExt.TypeClasses;
 using LanguageExt.ClassInstances;
 using System.ComponentModel;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using LanguageExt.Common;
 
@@ -34,7 +33,7 @@ public static class TryOptionExtensions
             ? res.Value.Value
             : res.IsNone 
                 ? null
-                : (object)Error.New(res.Exception);
+                : Error.New(res.Exception);
     }
 
     /// <summary>
@@ -133,7 +132,7 @@ public static class TryOptionExtensions
     /// <param name="Some">Delegate to invoke if successful</param>
     public static Unit IfSome<A>(this TryOption<A> self, Action<A> Some)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         if (!res.IsFaulted && res.Value.IsSome)
         {
             Some(res.Value.Value);
@@ -147,7 +146,7 @@ public static class TryOptionExtensions
     /// <param name="None">Delegate to invoke if successful</param>
     public static Unit IfNoneOrFail<A>(this TryOption<A> self, Action None)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         if (res.IsFaulted || res.Value.IsNone)
         {
             None();
@@ -165,7 +164,7 @@ public static class TryOptionExtensions
     {
         if (isnull(defaultValue)) throw new ArgumentNullException(nameof(defaultValue));
 
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         if (res.IsFaulted || res.Value.IsNone)
             return defaultValue;
         else
@@ -180,7 +179,7 @@ public static class TryOptionExtensions
     [Pure]
     public static A IfNoneOrFail<A>(this TryOption<A> self, Func<A> None)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         if (res.IsFaulted || res.Value.IsNone)
             return None();
         else
@@ -201,7 +200,7 @@ public static class TryOptionExtensions
         Func<A> None,
         Func<Exception, A> Fail)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         if (res.IsFaulted)
             return Fail(res.Exception);
         else if (res.Value.IsNone)
@@ -218,7 +217,7 @@ public static class TryOptionExtensions
     [Pure]
     public static ExceptionMatch<Option<A>> IfFail<A>(this TryOption<A> self)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         // BUG/TODO what about IsBottom (res.Exception might be null!)
         if (res.IsFaulted)
             return res.Exception.Match<Option<A>>();
@@ -236,7 +235,7 @@ public static class TryOptionExtensions
     [Pure]
     public static R Match<A, R>(this TryOption<A> self, Func<A, R> Some, Func<R> Fail)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted || res.Value.IsNone
             ? Fail()
             : Some(res.Value.Value);
@@ -252,7 +251,7 @@ public static class TryOptionExtensions
     [Pure]
     public static R Match<A, R>(this TryOption<A> self, Func<A, R> Some, Func<R> None, Func<Exception, R> Fail)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted ? Fail(res.Exception)
              : res.Value.IsSome ? Some(res.Value.Value)
              : None();
@@ -270,7 +269,7 @@ public static class TryOptionExtensions
     {
         if (isnull(Fail)) throw new ArgumentNullException(nameof(Fail));
 
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted || res.Value.IsNone
             ? Fail
             : Some(res.Value.Value);
@@ -283,7 +282,7 @@ public static class TryOptionExtensions
     /// <param name="Fail">Delegate to invoke if the Try computation fails</param>
     public static Unit Match<A>(this TryOption<A> self, Action<A> Some, Action Fail)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
 
         if (res.IsFaulted || res.Value.IsNone)
             Fail();
@@ -300,7 +299,7 @@ public static class TryOptionExtensions
     /// <param name="Fail">Delegate to invoke if the Try computation fails</param>
     public static Unit Match<A>(this TryOption<A> self, Action<A> Some, Action None, Action<Exception> Fail)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
 
         if (res.IsFaulted)
             Fail(res.Exception);
@@ -319,7 +318,7 @@ public static class TryOptionExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Eff<A> ToEff<A>(this TryOption<A> ma) =>
-        Prelude.EffMaybe(() =>
+        EffMaybe(() =>
             ma.Match(Some: Fin<A>.Succ,
                      None: () => Fin<A>.Fail(Errors.None),
                      Fail: e => Fin<A>.Fail(e)));
@@ -331,7 +330,7 @@ public static class TryOptionExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Eff<A> ToEff<A>(this TryOption<A> ma, Error None) =>
-        Prelude.EffMaybe(() =>
+        EffMaybe(() =>
             ma.Match(Some: Fin<A>.Succ,
                      None: () => Fin<A>.Fail(None),
                      Fail: e => Fin<A>.Fail(e)));
@@ -343,7 +342,7 @@ public static class TryOptionExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Eff<A> ToEff<A>(this TryOption<A> ma, Func<Error> None) =>
-        Prelude.EffMaybe(() =>
+        EffMaybe(() =>
             ma.Match(Some: Fin<A>.Succ,
                      None: () => Fin<A>.Fail(None()),
                      Fail: e => Fin<A>.Fail(e)));
@@ -355,7 +354,7 @@ public static class TryOptionExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Eff<A> ToEff<A>(this TryOption<A> ma, A None) =>
-        Prelude.EffMaybe(() =>
+        EffMaybe(() =>
             ma.Match(Some: Fin<A>.Succ,
                      None: () => Fin<A>.Succ(None),
                      Fail: e => Fin<A>.Fail(e)));
@@ -367,7 +366,7 @@ public static class TryOptionExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Eff<A> ToEff<A>(this TryOption<A> ma, Func<A> None) =>
-        Prelude.EffMaybe(() =>
+        EffMaybe(() =>
             ma.Match(Some: Fin<A>.Succ,
                      None: () => Fin<A>.Succ(None()),
                      Fail: e => Fin<A>.Fail(e)));
@@ -420,7 +419,7 @@ public static class TryOptionExtensions
     [Pure]
     public static Option<A> ToOption<A>(this TryOption<A> self)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted
             ? None
             : res.Value;
@@ -429,7 +428,7 @@ public static class TryOptionExtensions
     [Pure]
     public static OptionUnsafe<A> ToOptionUnsafe<A>(this TryOption<A> self)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted
             ? None
             : res.Value.ToOptionUnsafe();
@@ -447,7 +446,7 @@ public static class TryOptionExtensions
     [Pure]
     public static Either<Exception, Option<A>> ToEither<A>(this TryOption<A> self)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted
             ? Left<Exception, Option<A>>(res.Exception)
             : Right<Exception, Option<A>>(res.Value);
@@ -456,7 +455,7 @@ public static class TryOptionExtensions
     [Pure]
     public static EitherUnsafe<Exception, Option<A>> ToEitherUnsafe<A>(this TryOption<A> self)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted
             ? LeftUnsafe<Exception, Option<A>>(res.Exception)
             : RightUnsafe<Exception, Option<A>>(res.Value);
@@ -474,7 +473,7 @@ public static class TryOptionExtensions
     [Pure]
     public static Either<L, Option<A>> ToEither<A, L>(this TryOption<A> self, Func<Exception, L> Fail)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted
             ? Left<L, Option<A>>(Fail(res.Exception))
             : Right<L, Option<A>>(res.Value);
@@ -483,7 +482,7 @@ public static class TryOptionExtensions
     [Pure]
     public static EitherUnsafe<L, Option<A>> ToEitherUnsafe<A, L>(this TryOption<A> self, Func<Exception, L> Fail)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted
             ? LeftUnsafe<L, Option<A>>(Fail(res.Exception))
             : RightUnsafe<L, Option<A>>(res.Value);
@@ -544,7 +543,7 @@ public static class TryOptionExtensions
     [Pure]
     public static int Count<A>(this TryOption<A> self)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted || res.Value.IsNone
             ? 0
             : 1;
@@ -561,7 +560,7 @@ public static class TryOptionExtensions
     [Pure]
     public static bool ForAll<A>(this TryOption<A> self, Func<A, bool> pred)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted || res.Value.IsNone
             ? false
             : pred(res.Value.Value);
@@ -578,7 +577,7 @@ public static class TryOptionExtensions
     [Pure]
     public static S Fold<A, S>(this TryOption<A> self, S state, Func<S, A, S> folder)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted || res.Value.IsNone
             ? state
             : folder(state, res.Value.Value);
@@ -596,7 +595,7 @@ public static class TryOptionExtensions
     [Pure]
     public static S BiFold<A, S>(this TryOption<A> self, S state, Func<S, A, S> Some, Func<S, S> Fail)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted || res.Value.IsNone
             ? Fail(state)
             : Some(state, res.Value.Value);
@@ -614,7 +613,7 @@ public static class TryOptionExtensions
     [Pure]
     public static S TriFold<A, S>(this TryOption<A> self, S state, Func<S, A, S> Some, Func<S, S> None, Func<S, Exception, S> Fail)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted
             ? Fail(state, res.Exception)
             : res.Value.IsSome
@@ -632,7 +631,7 @@ public static class TryOptionExtensions
     [Pure]
     public static bool Exists<A>(this TryOption<A> self, Func<A, bool> pred)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.IsFaulted || res.Value.IsNone
             ? false
             : pred(res.Value.Value);
@@ -792,7 +791,7 @@ public static class TryOptionExtensions
     [Pure]
     public static Seq<A> ToSeq<A>(this TryOption<A> self)
     {
-        var res = TryOptionExtensions.Try(self);
+        var res = Try(self);
         return res.Value.IsSome
             ? res.Value.Value.Cons(Empty)
             : Empty;
@@ -812,11 +811,11 @@ public static class TryOptionExtensions
 
     [Pure]
     public static TryOptionSomeContext<A, R> Some<A, R>(this TryOption<A> self, Func<A, R> Some) =>
-        new TryOptionSomeContext<A, R>(self, Some);
+        new(self, Some);
 
     [Pure]
     public static TryOptionSomeUnitContext<A> Some<A>(this TryOption<A> self, Action<A> Some) =>
-        new TryOptionSomeUnitContext<A>(self, Some);
+        new(self, Some);
 
     [Pure]
     public static string AsString<A>(this TryOption<A> self) =>
@@ -913,7 +912,7 @@ public static class TryOptionExtensions
     public static TryOption<U> Use<T, U>(this TryOption<T> self, Func<T, U> select)
         where T : IDisposable => () =>
         {
-            T t = default(T);
+            var t = default(T);
             try
             {
                 var opt = self().Value;
@@ -1193,7 +1192,7 @@ public static class TryOptionExtensions
     {
         var x = ma.Try();
         return x.IsFaulted || x.Value.IsNone
-            ? (A?)null
+            ? null
             : x.Value.Value;
     }
 

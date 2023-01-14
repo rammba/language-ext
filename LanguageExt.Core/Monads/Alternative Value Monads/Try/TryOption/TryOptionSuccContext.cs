@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
-using LanguageExt;
 
 namespace LanguageExt
 {
-    public struct TryOptionSomeContext<T, R>
+    public readonly struct TryOptionSomeContext<T, R>
     {
         readonly TryOption<T> option;
         readonly Func<T, R> someHandler;
@@ -17,14 +16,14 @@ namespace LanguageExt
 
         [Pure]
         public TryOptionNoneContext<T, R> None(Func<R> noneHandler) =>
-            new TryOptionNoneContext<T, R>(option, someHandler, noneHandler);
+            new(option, someHandler, noneHandler);
 
         [Pure]
         public TryOptionNoneContext<T, R> None(R noneValue) =>
-            new TryOptionNoneContext<T, R>(option, someHandler, () => noneValue);
+            new(option, someHandler, () => noneValue);
     }
 
-    public struct TryOptionSomeUnitContext<T>
+    public readonly struct TryOptionSomeUnitContext<T>
     {
         readonly TryOption<T> option;
         readonly Action<T> someHandler;
@@ -37,10 +36,10 @@ namespace LanguageExt
 
         [Pure]
         public TryOptionNoneUnitContext<T> None(Action noneHandler) =>
-            new TryOptionNoneUnitContext<T>(option, someHandler, noneHandler);
+            new(option, someHandler, noneHandler);
     }
 
-    public struct TryOptionNoneContext<T, R>
+    public readonly struct TryOptionNoneContext<T, R>
     {
         readonly TryOption<T> option;
         readonly Func<T, R> someHandler;
@@ -62,7 +61,7 @@ namespace LanguageExt
             option.Match(someHandler, noneHandler, _ => failValue);
     }
 
-    public struct TryOptionNoneUnitContext<T>
+    public readonly struct TryOptionNoneUnitContext<T>
     {
         readonly TryOption<T> option;
         readonly Action<T> someHandler;

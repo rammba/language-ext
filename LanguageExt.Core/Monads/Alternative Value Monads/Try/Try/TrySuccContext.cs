@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 
 namespace LanguageExt
 {
-    public struct TrySuccContext<T, R>
+    public readonly struct TrySuccContext<T, R>
     {
         readonly Try<T> value;
         readonly Func<T, R> succHandler;
@@ -23,7 +23,7 @@ namespace LanguageExt
             value.Match(succHandler, _ => failValue);
     }
 
-    public struct TrySuccUnitContext<T>
+    public readonly struct TrySuccUnitContext<T>
     {
         readonly Try<T> value;
         readonly Action<T> succHandler;

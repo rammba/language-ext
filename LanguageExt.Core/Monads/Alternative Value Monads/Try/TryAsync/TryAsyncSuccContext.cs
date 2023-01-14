@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace LanguageExt
 {
-    public struct TryAsyncSuccContext<A, B>
+    public readonly struct TryAsyncSuccContext<A, B>
     {
         readonly TryAsync<A> value;
         readonly Func<A, B> succHandler;
@@ -32,7 +32,7 @@ namespace LanguageExt
             value.Match(succHandler, _ => failValue);
     }
 
-    public struct TryAsyncSuccUnitContext<A>
+    public readonly struct TryAsyncSuccUnitContext<A>
     {
         readonly TryAsync<A> value;
         readonly Action<A> succHandler;

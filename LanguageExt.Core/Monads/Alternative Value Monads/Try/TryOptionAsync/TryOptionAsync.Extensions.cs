@@ -6,10 +6,8 @@ using static LanguageExt.TypeClass;
 using System.Diagnostics.Contracts;
 using System.Threading.Tasks;
 using LanguageExt.TypeClasses;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using LanguageExt.ClassInstances;
-using LanguageExt.DataTypes.Serialisation;
 using LanguageExt.Common;
 
 /// <summary>
@@ -34,7 +32,7 @@ public static class TryOptionAsyncExtensions
             ? res.Value.Value
             : res.IsNone
                 ? null
-                : (object)Error.New(res.Exception);
+                : Error.New(res.Exception);
     }
 
     /// <summary>
@@ -42,7 +40,7 @@ public static class TryOptionAsyncExtensions
     /// </summary>
     public static TryOptionAsync<A> Memo<A>(this TryOptionAsync<A> ma)
     {
-        bool run = false;
+        var run = false;
         var result = OptionalResult<A>.Bottom;
         return new TryOptionAsync<A>(async () =>
         {
@@ -121,9 +119,9 @@ public static class TryOptionAsyncExtensions
     /// </summary>
     public static TaskAwaiter<TryOption<A>> GetAwaiter<A>(this TryOptionAsync<A> ma) =>
         ma.Match(
-            Some: Prelude.TryOption<A>,
-            None: () => Prelude.TryOption<A>(None),
-            Fail: Prelude.TryOption<A>).GetAwaiter();
+            Some: TryOption,
+            None: () => TryOption<A>(None),
+            Fail: TryOption<A>).GetAwaiter();
 
     /// <summary>
     /// Test if the TryOptionAsync is in a success state
@@ -160,8 +158,6 @@ public static class TryOptionAsyncExtensions
     /// <returns>True if computation is faulted</returns>
     public static async Task<bool> IsNone<A>(this TryOptionAsync<A> ma) =>
         (await ma.Try().ConfigureAwait(false)).IsNone;
-
-
 
     /// <summary>
     /// Invoke a delegate if the computation returns a value successfully
@@ -1152,7 +1148,7 @@ public static class TryOptionAsyncExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Aff<A> ToAff<A>(this TryOptionAsync<A> ma) =>
-        Prelude.AffMaybe(async () => await
+        AffMaybe(async () => await
             ma.Match(Some: Fin<A>.Succ,
                      None: () => Fin<A>.Fail(Errors.None),
                      Fail: e => Fin<A>.Fail(e)));
@@ -1164,7 +1160,7 @@ public static class TryOptionAsyncExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Aff<A> ToAff<A>(this TryOptionAsync<A> ma, Error None) =>
-        Prelude.AffMaybe(async () => await
+        AffMaybe(async () => await
             ma.Match(Some: Fin<A>.Succ,
                      None: () => Fin<A>.Fail(None),
                      Fail: e => Fin<A>.Fail(e)));
@@ -1176,7 +1172,7 @@ public static class TryOptionAsyncExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Aff<A> ToAff<A>(this TryOptionAsync<A> ma, Func<Error> None) =>
-        Prelude.AffMaybe(async () => await
+        AffMaybe(async () => await
             ma.Match(Some: Fin<A>.Succ,
                      None: () => Fin<A>.Fail(None()),
                      Fail: e => Fin<A>.Fail(e)));
@@ -1188,7 +1184,7 @@ public static class TryOptionAsyncExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Aff<A> ToAff<A>(this TryOptionAsync<A> ma, A None) =>
-        Prelude.AffMaybe(async () => await
+        AffMaybe(async () => await
              ma.Match(Some: Fin<A>.Succ,
                       None: () => Fin<A>.Succ(None),
                       Fail: e => Fin<A>.Fail(e)));
@@ -1200,7 +1196,7 @@ public static class TryOptionAsyncExtensions
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Aff<A> ToAff<A>(this TryOptionAsync<A> ma, Func<A> None) =>
-        Prelude.AffMaybe(async () => await
+        AffMaybe(async () => await
             ma.Match(Some: Fin<A>.Succ,
                      None: () => Fin<A>.Succ(None()),
                      Fail: e => Fin<A>.Fail(e)));
@@ -1208,14 +1204,14 @@ public static class TryOptionAsyncExtensions
     [Pure]
     public static Task<Option<A>> ToOption<A>(this TryOptionAsync<A> self) =>
         self.Match(
-            Some: v  => Option<A>.Some(v),
+            Some: Option<A>.Some,
             None: () => Option<A>.None,
             Fail: _  => Option<A>.None);
 
     [Pure]
     public static Task<OptionUnsafe<A>> ToOptionUnsafe<A>(this TryOptionAsync<A> self) =>
         self.Match(
-            Some: v => OptionUnsafe<A>.Some(v),
+            Some: OptionUnsafe<A>.Some,
             None: () => OptionUnsafe<A>.None,
             Fail: _ => OptionUnsafe<A>.None);
 
@@ -1384,7 +1380,8 @@ public static class TryOptionAsyncExtensions
     public static Task<S> BiFold<A, S>(this TryOptionAsync<A> self, S state, Func<S, A, S> Succ, Func<S, S> Fail) =>
         BiMap(self,
             Succ: v  => Succ(state, v),
-            Fail: () => Fail(state)).IfNoneOrFail(state);
+            Fail: () => Fail(state))
+        .IfNoneOrFail(state);
 
     /// <summary>
     /// Folds computation value into an S.
@@ -1399,8 +1396,8 @@ public static class TryOptionAsyncExtensions
     public static Task<S> BiFold<A, S>(this TryOptionAsync<A> self, S state, Func<S, A, S> Succ, Func<S, Task<S>> Fail) =>
         BiMap(self,
             Succ: v  => Succ(state, v),
-            Fail: () => Fail(state)).IfNoneOrFail(state);
-
+            Fail: () => Fail(state))
+        .IfNoneOrFail(state);
 
     /// <summary>
     /// Folds computation value into an S.
@@ -1415,7 +1412,8 @@ public static class TryOptionAsyncExtensions
     public static Task<S> BiFold<A, S>(this TryOptionAsync<A> self, S state, Func<S, A, Task<S>> Succ, Func<S, S> Fail) =>
         BiMap(self,
             Succ: v  => Succ(state, v),
-            Fail: () => Fail(state)).IfNoneOrFail(state);
+            Fail: () => Fail(state))
+        .IfNoneOrFail(state);
 
     /// <summary>
     /// Folds computation value into an S.
@@ -1431,7 +1429,7 @@ public static class TryOptionAsyncExtensions
         BiMap(self,
             Succ: v  => Succ(state, v),
             Fail: () => Fail(state))
-           .IfNoneOrFail(state);
+        .IfNoneOrFail(state);
 
 
     /// <summary>
@@ -1450,7 +1448,7 @@ public static class TryOptionAsyncExtensions
             Some: v  => Some(state, v),
             None: () => None(state),
             Fail: x  => Fail(state, x))
-           .IfNoneOrFail(state);
+        .IfNoneOrFail(state);
 
     /// <summary>
     /// Folds Try value into an S.
@@ -1468,7 +1466,7 @@ public static class TryOptionAsyncExtensions
             Some: v => Some(state, v),
             None: () => None(state),
             Fail: x => Fail(state, x))
-           .IfNoneOrFail(state);
+        .IfNoneOrFail(state);
 
     /// <summary>
     /// Folds Try value into an S.
@@ -1486,7 +1484,7 @@ public static class TryOptionAsyncExtensions
             Some: v => Some(state, v),
             None: () => None(state),
             Fail: x => Fail(state, x))
-           .IfNoneOrFail(state);
+        .IfNoneOrFail(state);
 
     /// <summary>
     /// Folds Try value into an S.
@@ -1504,7 +1502,7 @@ public static class TryOptionAsyncExtensions
             Some: v => Some(state, v),
             None: () => None(state),
             Fail: x => Fail(state, x))
-           .IfNoneOrFail(state);
+        .IfNoneOrFail(state);
 
     /// <summary>
     /// Folds Try value into an S.
@@ -1522,7 +1520,7 @@ public static class TryOptionAsyncExtensions
             Some: v => Some(state, v),
             None: () => None(state),
             Fail: x => Fail(state, x))
-           .IfNoneOrFail(state);
+        .IfNoneOrFail(state);
 
     /// <summary>
     /// Folds Try value into an S.
@@ -1540,7 +1538,7 @@ public static class TryOptionAsyncExtensions
             Some: v => Some(state, v),
             None: () => None(state),
             Fail: x => Fail(state, x))
-           .IfNoneOrFail(state);
+        .IfNoneOrFail(state);
 
     /// <summary>
     /// Folds Try value into an S.
@@ -1558,7 +1556,7 @@ public static class TryOptionAsyncExtensions
             Some: v => Some(state, v),
             None: () => None(state),
             Fail: x => Fail(state, x))
-           .IfNoneOrFail(state);
+        .IfNoneOrFail(state);
 
     /// <summary>
     /// Tests that a predicate holds for any value of the bound value T
@@ -2003,11 +2001,11 @@ public static class TryOptionAsyncExtensions
 
     [Pure]
     public static TryOptionAsyncSuccContext<A, R> Some<A, R>(this TryOptionAsync<A> self, Func<A, R> succHandler) =>
-        new TryOptionAsyncSuccContext<A, R>(self, succHandler, () => default(R));
+        new(self, succHandler, () => default);
 
     [Pure]
     public static TryOptionAsyncSuccContext<A> Some<A>(this TryOptionAsync<A> self, Action<A> succHandler) =>
-        new TryOptionAsyncSuccContext<A>(self, succHandler, () => { });
+        new(self, succHandler, () => { });
 
     [Pure]
     public static Task<string> AsString<A>(this TryOptionAsync<A> self) =>
@@ -2193,7 +2191,7 @@ public static class TryOptionAsyncExtensions
         Func<A, C> outerKeyMap,
         Func<B, C> innerKeyMap,
         Func<A, B, D> project) =>
-            Memo<D>(async () =>
+            Memo(async () =>
             {
                 var selfTask = self.Try();
                 var innerTask = inner.Try();
@@ -2418,15 +2416,16 @@ public static class TryOptionAsyncExtensions
     /// <param name="rhs">Right-hand side of the operation</param>
     /// <returns>lhs ++ rhs</returns>
     [Pure]
-    public static TryOptionAsync<A> Append<SEMI, A>(this TryOptionAsync<A> lhs, TryOptionAsync<A> rhs) where SEMI : struct, Semigroup<A> => Memo<A>(async () =>
-    {
-        var x = lhs.Try();
-        var y = rhs.Try();
-        await Task.WhenAll(x, y).ConfigureAwait(false);
-        if (x.IsFaulted || x.Result.IsFaulted) return x.Result;
-        if (y.IsFaulted || y.Result.IsFaulted) return y.Result;
-        return append<SEMI, A>(x.Result.Value, y.Result.Value);
-    });
+    public static TryOptionAsync<A> Append<SEMI, A>(this TryOptionAsync<A> lhs, TryOptionAsync<A> rhs) where SEMI : struct, Semigroup<A> =>
+        Memo(async () =>
+        {
+            var x = lhs.Try();
+            var y = rhs.Try();
+            await Task.WhenAll(x, y).ConfigureAwait(false);
+            if (x.IsFaulted || x.Result.IsFaulted) return x.Result;
+            if (y.IsFaulted || y.Result.IsFaulted) return y.Result;
+            return append<SEMI, A>(x.Result.Value, y.Result.Value);
+        });
 
     /// <summary>
     /// Add the bound value of Try(x) to Try(y).  If either of the
@@ -2436,15 +2435,16 @@ public static class TryOptionAsyncExtensions
     /// <param name="rhs">Right-hand side of the operation</param>
     /// <returns>lhs + rhs</returns>
     [Pure]
-    public static TryOptionAsync<A> Add<NUM, A>(this TryOptionAsync<A> lhs, TryOptionAsync<A> rhs) where NUM : struct, Num<A> => Memo<A>(async () =>
-    {
-        var x = lhs.Try();
-        var y = rhs.Try();
-        await Task.WhenAll(x, y).ConfigureAwait(false);
-        if (x.IsFaulted || x.Result.IsFaulted) return x.Result;
-        if (y.IsFaulted || y.Result.IsFaulted) return y.Result;
-        return add<NUM, A>(x.Result.Value, y.Result.Value);
-    });
+    public static TryOptionAsync<A> Add<NUM, A>(this TryOptionAsync<A> lhs, TryOptionAsync<A> rhs) where NUM : struct, Num<A> =>
+        Memo(async () =>
+        {
+            var x = lhs.Try();
+            var y = rhs.Try();
+            await Task.WhenAll(x, y).ConfigureAwait(false);
+            if (x.IsFaulted || x.Result.IsFaulted) return x.Result;
+            if (y.IsFaulted || y.Result.IsFaulted) return y.Result;
+            return add<NUM, A>(x.Result.Value, y.Result.Value);
+        });
 
     /// <summary>
     /// Find the subtract of the bound value of Try(x) and Try(y).  If either of 
@@ -2454,15 +2454,16 @@ public static class TryOptionAsyncExtensions
     /// <param name="rhs">Right-hand side of the operation</param>
     /// <returns>lhs + rhs</returns>
     [Pure]
-    public static TryOptionAsync<A> Subtract<NUM, A>(this TryOptionAsync<A> lhs, TryOptionAsync<A> rhs) where NUM : struct, Num<A> => Memo<A>(async () =>
-    {
-        var x = lhs.Try();
-        var y = rhs.Try();
-        await Task.WhenAll(x, y).ConfigureAwait(false);
-        if (x.IsFaulted || x.Result.IsFaulted) return x.Result;
-        if (y.IsFaulted || y.Result.IsFaulted) return y.Result;
-        return subtract<NUM, A>(x.Result.Value, y.Result.Value);
-    });
+    public static TryOptionAsync<A> Subtract<NUM, A>(this TryOptionAsync<A> lhs, TryOptionAsync<A> rhs) where NUM : struct, Num<A> =>
+        Memo(async () =>
+        {
+            var x = lhs.Try();
+            var y = rhs.Try();
+            await Task.WhenAll(x, y).ConfigureAwait(false);
+            if (x.IsFaulted || x.Result.IsFaulted) return x.Result;
+            if (y.IsFaulted || y.Result.IsFaulted) return y.Result;
+            return subtract<NUM, A>(x.Result.Value, y.Result.Value);
+        });
 
     /// <summary>
     /// Multiply the bound value of Try(x) and Try(y).  If either of the
@@ -2472,15 +2473,16 @@ public static class TryOptionAsyncExtensions
     /// <param name="rhs">Right-hand side of the operation</param>
     /// <returns>lhs + rhs</returns>
     [Pure]
-    public static TryOptionAsync<A> Product<NUM, A>(this TryOptionAsync<A> lhs, TryOptionAsync<A> rhs) where NUM : struct, Num<A> => Memo<A>(async () =>
-    {
-        var x = lhs.Try();
-        var y = rhs.Try();
-        await Task.WhenAll(x, y).ConfigureAwait(false);
-        if (x.IsFaulted || x.Result.IsFaulted) return x.Result;
-        if (y.IsFaulted || y.Result.IsFaulted) return y.Result;
-        return product<NUM, A>(x.Result.Value, y.Result.Value);
-    });
+    public static TryOptionAsync<A> Product<NUM, A>(this TryOptionAsync<A> lhs, TryOptionAsync<A> rhs) where NUM : struct, Num<A> =>
+        Memo(async () =>
+        {
+            var x = lhs.Try();
+            var y = rhs.Try();
+            await Task.WhenAll(x, y).ConfigureAwait(false);
+            if (x.IsFaulted || x.Result.IsFaulted) return x.Result;
+            if (y.IsFaulted || y.Result.IsFaulted) return y.Result;
+            return product<NUM, A>(x.Result.Value, y.Result.Value);
+        });
 
     /// <summary>
     /// Multiply the bound value of Try(x) and Try(y).  If either of the
@@ -2490,15 +2492,16 @@ public static class TryOptionAsyncExtensions
     /// <param name="rhs">Right-hand side of the operation</param>
     /// <returns>lhs + rhs</returns>
     [Pure]
-    public static TryOptionAsync<A> Divide<NUM, A>(this TryOptionAsync<A> lhs, TryOptionAsync<A> rhs) where NUM : struct, Num<A> => Memo<A>(async () =>
-    {
-        var x = lhs.Try();
-        var y = rhs.Try();
-        await Task.WhenAll(x, y).ConfigureAwait(false);
-        if (x.IsFaulted || x.Result.IsFaulted) return x.Result;
-        if (y.IsFaulted || y.Result.IsFaulted) return y.Result;
-        return divide<NUM, A>(x.Result.Value, y.Result.Value);
-    });
+    public static TryOptionAsync<A> Divide<NUM, A>(this TryOptionAsync<A> lhs, TryOptionAsync<A> rhs) where NUM : struct, Num<A> =>
+        Memo(async () =>
+        {
+            var x = lhs.Try();
+            var y = rhs.Try();
+            await Task.WhenAll(x, y).ConfigureAwait(false);
+            if (x.IsFaulted || x.Result.IsFaulted) return x.Result;
+            if (y.IsFaulted || y.Result.IsFaulted) return y.Result;
+            return divide<NUM, A>(x.Result.Value, y.Result.Value);
+        });
 
     /// <summary>
     /// Convert the computation type to a Nullable of A
@@ -2511,7 +2514,7 @@ public static class TryOptionAsyncExtensions
     {
         var x = await ma.Try().ConfigureAwait(false);
         return x.IsFaultedOrNone
-            ? (A?)null
+            ? null
             : x.Value.Value;
     }
 }
